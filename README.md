@@ -45,36 +45,6 @@ Time_Based_Player/
 │   └── package.json
 ├── database/               # SQLite database files
 └── docs/                   # Documentation
-```
-
-## Quick Start
-
-### 1. Initialize Database
-
-```bash
-cd backend
-npm install
-npm run init-db
-```
-
-### 2. Start Backend Server
-
-```bash
-cd backend
-npm start
-```
-
-The backend will run on `http://localhost:3001`
-
-### 3. Start Frontend
-
-```bash
-cd frontend
-npm install
-npm start
-```
-
-The frontend will run on `http://localhost:3000`
 
 ## API Endpoints
 
@@ -104,19 +74,7 @@ The frontend will run on `http://localhost:3000`
 | 5     | 16:00–19:59   | Evening Relax    | Wind down after work |
 | 6     | 20:00–23:59   | Night Vibes      | Late evening atmosphere |
 
-## Development
 
-### Backend Development
-```bash
-cd backend
-npm run dev  # Uses nodemon for auto-restart
-```
-
-### Frontend Development
-```bash
-cd frontend
-npm start    # Development server with hot reload
-```
 
 ## Environment Variables
 
@@ -155,19 +113,3 @@ REACT_APP_VERSION=1.0.0
 - `url` (TEXT) - Song file path or URL
 - `artist` (TEXT) - Song artist
 - `playlist_id` (INT, FK) - Linked playlist
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## License
-
-MIT License - see LICENSE file for details
-
-## Support
-
-For issues and questions, please create an issue in the repository.
