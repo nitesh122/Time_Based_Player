@@ -1,12 +1,11 @@
 const express = require('express');
-const PlaylistController = require('../controllers/playlistController');
-
 const router = express.Router();
+const { getPlaylists, getPlaylistById } = require('../controllers/playlistController');
 
-// GET /api/playlists - Get all playlists
-router.get('/', PlaylistController.getAllPlaylists);
+// GET all playlists
+router.get('/', getPlaylists);
 
-// GET /api/playlists/:id - Get playlist by ID with songs
-router.get('/:id', PlaylistController.getPlaylistById);
+// GET single playlist by id (with songs)
+router.get('/:id', getPlaylistById);
 
 module.exports = router;

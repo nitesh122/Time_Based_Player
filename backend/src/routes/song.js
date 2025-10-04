@@ -1,9 +1,11 @@
 const express = require('express');
-const SongController = require('../controllers/songController');
-
 const router = express.Router();
+const { getSongs, getSongsByPlaylist } = require('../controllers/songController');
 
-// GET /api/songs/:id - Get song by ID
-router.get('/:id', SongController.getSongById);
+// GET all songs
+router.get('/', getSongs);
+
+// GET songs by playlist
+router.get('/playlist/:id', getSongsByPlaylist);
 
 module.exports = router;

@@ -1,29 +1,38 @@
-const SongModel = require('../models/songModel');
+const db = require('../db');
+const { publicSongUrl } = require('../storage');
 
-class SongController {
-  // Get song by ID
-  static async getSongById(req, res) {
-    try {
-      const { id } = req.params;
-      const song = await SongModel.getSongById(id);
-      
-      if (!song) {
-        return res.status(404).json({ error: 'Song not found' });
-      }
-
-      res.json({
-        song_id: song.song_id,
-        title: song.title,
-        url: song.url,
-        artist: song.artist,
-        playlist_id: song.playlist_id,
-        playlist_name: song.playlist_name
-      });
-    } catch (error) {
-      console.error('Error getting song:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
+// Get all songs
+async function getSongs(req, res) {
+  try {
+    const { rows } = await db.query('SELECT * FROM songs ORDER BY song_id');
+    const songs = rows.map((s) => ({
+      ...s,
+      url: publicSongUrl(s.file_path),
+    }));
+    res.json(songs);
+  } catch (err) {
+    console.error('Error fetching songs:', err);
+    res.status(500).json({ error: 'Failed to fetch songs' });
   }
 }
 
-module.exports = SongController;
+// Get songs by playlist
+async function getSongsByPlaylist(req, res) {
+  try {
+    const playlistId = req.params.id;
+    const { rows } = await db.query('SELECT * FROM songs WHERE playlist_id = $1', [playlistId]);
+    const songs = rows.map((s) => ({
+      ...s,
+      url: publicSongUrl(s.file_path),
+    }));
+    res.json(songs);
+  } catch (err) {
+    console.error('Error fetching songs by playlist:', err);
+    res.status(500).json({ error: 'Failed to fetch songs for playlist' });
+  }
+}
+
+module.exports = {
+  getSongs,
+  getSongsByPlaylist,
+};

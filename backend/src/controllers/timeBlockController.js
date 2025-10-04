@@ -1,64 +1,50 @@
-const TimeBlockModel = require('../models/timeBlockModel');
+const db = require('../db');
+const { publicBackgroundUrl } = require('../storage');
 
-class TimeBlockController {
-  // Get current time block
-  static async getCurrentTimeBlock(req, res) {
-    try {
-      const timeBlock = await TimeBlockModel.getCurrentTimeBlock();
-      
-      if (!timeBlock) {
-        return res.status(404).json({ 
-          error: 'No time block found for current time' 
-        });
-      }
-
-      res.json({
-        block_id: timeBlock.block_id,
-        start_time: timeBlock.start_time,
-        end_time: timeBlock.end_time,
-        playlist_id: timeBlock.playlist_id,
-        playlist_name: timeBlock.playlist_name,
-        background_image: timeBlock.background_image
-      });
-    } catch (error) {
-      console.error('Error getting current time block:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  }
-
-  // Get all time blocks
-  static async getAllTimeBlocks(req, res) {
-    try {
-      const timeBlocks = await TimeBlockModel.getAllTimeBlocks();
-      res.json(timeBlocks);
-    } catch (error) {
-      console.error('Error getting time blocks:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  }
-
-  // Get time block by ID
-  static async getTimeBlockById(req, res) {
-    try {
-      const { id } = req.params;
-      
-      // Input validation
-      if (!id || isNaN(parseInt(id))) {
-        return res.status(400).json({ error: 'Invalid time block ID' });
-      }
-      
-      const timeBlock = await TimeBlockModel.getTimeBlockById(id);
-      
-      if (!timeBlock) {
-        return res.status(404).json({ error: 'Time block not found' });
-      }
-
-      res.json(timeBlock);
-    } catch (error) {
-      console.error('Error getting time block:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
+// Get all time blocks
+async function getTimeBlocks(req, res) {
+  try {
+    const { rows } = await db.query('SELECT * FROM time_blocks ORDER BY block_id');
+    const blocks = rows.map((b) => ({
+      ...b,
+      background_url: publicBackgroundUrl(b.background_path),
+    }));
+    res.json(blocks);
+  } catch (err) {
+    console.error('Error fetching time blocks:', err);
+    res.status(500).json({ error: 'Failed to fetch time blocks' });
   }
 }
 
-module.exports = TimeBlockController;
+// Get current block based on server time in IST
+async function getCurrentTimeBlock(req, res) {
+  try {
+    const { rows } = await db.query(
+      `WITH now_ist AS (
+         SELECT (current_timestamp AT TIME ZONE 'Asia/Kolkata')::time AS t
+       )
+       SELECT *
+       FROM time_blocks tb, now_ist n
+       WHERE
+         (tb.end_time > tb.start_time AND n.t BETWEEN tb.start_time AND tb.end_time)
+         OR
+         (tb.end_time < tb.start_time AND (n.t >= tb.start_time OR n.t <= tb.end_time))
+       LIMIT 1`
+    );
+
+    if (!rows.length) return res.status(404).json({ error: 'No active block' });
+
+    const block = rows[0];
+    block.background_url = publicBackgroundUrl(block.background_path);
+
+    res.json(block);
+  } catch (err) {
+    console.error('Error fetching current time block:', err);
+    res.status(500).json({ error: 'Failed to fetch current block' });
+  }
+}
+
+module.exports = {
+  getTimeBlocks,
+  getCurrentTimeBlock,
+};

@@ -1,121 +1,36 @@
+// backend/src/routes/upload.js
 const express = require('express');
-const upload = require('../upload');
-const { db } = require('../db');
-const path = require('path');
+const multer = require('multer');
+const { createClient } = require('@supabase/supabase-js');
 
 const router = express.Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
-// Upload background image
-router.post('/background', upload.single('background'), (req, res) => {
+const supa = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE);
+
+// Upload a song or background file to Supabase Storage
+router.post('/:bucket', upload.single('file'), async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No background file uploaded' });
+    const { bucket } = req.params;
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    const { timeBlockId } = req.body;
-    
-    if (!timeBlockId) {
-      return res.status(400).json({ error: 'Time block ID is required' });
-    }
+    // Example: morning/track1.mp3
+    const filePath = `${Date.now()}-${file.originalname}`;
 
-    // Update database with new background image path
-    const backgroundPath = `/media/backgrounds/${req.file.filename}`;
-    
-    db.run(
-      'UPDATE time_blocks SET background_image = ? WHERE block_id = ?',
-      [backgroundPath, timeBlockId],
-      function(err) {
-        if (err) {
-          console.error('Error updating background:', err);
-          return res.status(500).json({ error: 'Failed to update background' });
-        }
-        
-        res.json({
-          message: 'Background uploaded successfully',
-          backgroundPath: backgroundPath,
-          timeBlockId: timeBlockId
-        });
-      }
-    );
-  } catch (error) {
-    console.error('Upload error:', error);
-    res.status(500).json({ error: 'Upload failed' });
-  }
-});
+    const { data, error } = await supa.storage
+      .from(bucket)
+      .upload(filePath, file.buffer, { contentType: file.mimetype });
 
-// Upload music file
-router.post('/music', upload.single('music'), (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No music file uploaded' });
-    }
+    if (error) throw error;
 
-    const { title, artist, playlistId } = req.body;
-    
-    if (!title || !artist || !playlistId) {
-      return res.status(400).json({ error: 'Title, artist, and playlist ID are required' });
-    }
-
-    // Insert new song into database
-    const musicPath = `/media/music/${req.file.filename}`;
-    
-    db.run(
-      'INSERT INTO songs (title, url, artist, playlist_id) VALUES (?, ?, ?, ?)',
-      [title, musicPath, artist, playlistId],
-      function(err) {
-        if (err) {
-          console.error('Error inserting song:', err);
-          return res.status(500).json({ error: 'Failed to add song' });
-        }
-        
-        res.json({
-          message: 'Music uploaded successfully',
-          songId: this.lastID,
-          musicPath: musicPath,
-          title: title,
-          artist: artist,
-          playlistId: playlistId
-        });
-      }
-    );
-  } catch (error) {
-    console.error('Upload error:', error);
-    res.status(500).json({ error: 'Upload failed' });
-  }
-});
-
-// Get all uploaded files
-router.get('/files', (req, res) => {
-  try {
-    const backgrounds = [];
-    const music = [];
-    
-    // Get background files
-    const backgroundsDir = path.join(__dirname, '../../media/backgrounds');
-    const musicDir = path.join(__dirname, '../../media/music');
-    
-    if (fs.existsSync(backgroundsDir)) {
-      const files = fs.readdirSync(backgroundsDir);
-      backgrounds.push(...files.map(file => ({
-        filename: file,
-        path: `/media/backgrounds/${file}`,
-        type: 'background'
-      })));
-    }
-    
-    if (fs.existsSync(musicDir)) {
-      const files = fs.readdirSync(musicDir);
-      music.push(...files.map(file => ({
-        filename: file,
-        path: `/media/music/${file}`,
-        type: 'music'
-      })));
-    }
-    
-    res.json({ backgrounds, music });
-  } catch (error) {
-    console.error('Error getting files:', error);
-    res.status(500).json({ error: 'Failed to get files' });
+    return res.json({ path: data.path });
+  } catch (err) {
+    console.error('Upload error:', err.message);
+    res.status(500).json({ error: 'Failed to upload file' });
   }
 });
 

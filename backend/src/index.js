@@ -1,27 +1,26 @@
+// backend/src/index.js
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const path = require('path');
+const db = require('./db');
 
-// Import routes
-const timeBlockRoutes = require('./routes/timeBlock');
-const playlistRoutes = require('./routes/playlist');
-const songRoutes = require('./routes/song');
-const uploadRoutes = require('./routes/upload');
+// Import routes (make sure filenames are plural)
+const timeBlockRoutes = require('./routes/timeBlocks');
+const playlistRoutes = require('./routes/playlists');
+const songRoutes = require('./routes/songs');
+const uploadRoutes = require('./routes/upload'); // optional, keep only if you need uploads
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(bodyParser.json());
+app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
-app.use('/media', express.static(path.join(__dirname, '../../media')));
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -29,36 +28,47 @@ app.use((req, res, next) => {
   next();
 });
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    timestamp: new Date().toISOString(),
-    service: 'Time-Based Music Player API'
-  });
+// Health check endpoint (also verifies DB connection)
+app.get('/api/health', async (req, res) => {
+  try {
+    await db.query('SELECT 1');
+    res.json({
+      status: 'OK',
+      timestamp: new Date().toISOString(),
+      service: 'Time-Based Music Player API',
+      db: 'Connected',
+    });
+  } catch (err) {
+    console.error('DB Health Check Failed:', err.message);
+    res.status(500).json({
+      status: 'ERROR',
+      message: 'DB connection failed',
+      error: err.message,
+    });
+  }
 });
 
 // Routes
 app.use('/api/time-blocks', timeBlockRoutes);
 app.use('/api/playlists', playlistRoutes);
 app.use('/api/songs', songRoutes);
-app.use('/api/upload', uploadRoutes);
+app.use('/api/upload', uploadRoutes); // optional
 
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err.stack);
-  res.status(500).json({ 
+  res.status(500).json({
     error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong!'
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong!',
   });
 });
 
 // 404 handler
 app.use('*', (req, res) => {
-  res.status(404).json({ 
+  res.status(404).json({
     error: 'Route not found',
     path: req.originalUrl,
-    method: req.method
+    method: req.method,
   });
 });
 

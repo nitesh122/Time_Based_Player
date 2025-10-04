@@ -1,15 +1,11 @@
 const express = require('express');
-const TimeBlockController = require('../controllers/timeBlockController');
-
 const router = express.Router();
+const { getTimeBlocks, getCurrentTimeBlock } = require('../controllers/timeBlockController');
 
-// GET /api/time-blocks - Get all time blocks
-router.get('/', TimeBlockController.getAllTimeBlocks);
+// GET all time blocks
+router.get('/', getTimeBlocks);
 
-// GET /api/time-blocks/current - Get current time block
-router.get('/current', TimeBlockController.getCurrentTimeBlock);
-
-// GET /api/time-blocks/:id - Get time block by ID
-router.get('/:id', TimeBlockController.getTimeBlockById);
+// GET current time block (based on IST time)
+router.get('/current', getCurrentTimeBlock);
 
 module.exports = router;

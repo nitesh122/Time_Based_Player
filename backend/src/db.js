@@ -1,72 +1,39 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const fs = require('fs');
+require('dotenv').config();
+const { Pool } = require('pg');
 
-// Database path
-const dbPath = path.join(__dirname, '../../database/music_player.db');
-
-// Create database directory if it doesn't exist
-const dbDir = path.dirname(dbPath);
-if (!fs.existsSync(dbDir)) {
-  fs.mkdirSync(dbDir, { recursive: true });
-}
-
-// Create database connection
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error('Error opening database:', err.message);
-  } else {
-    console.log('✅ Connected to SQLite database');
-  }
+// Create a connection pool
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false, // required by Supabase
+  },
 });
 
-// Initialize database tables
-const initDatabase = () => {
-  return new Promise((resolve, reject) => {
-    db.serialize(() => {
-      // Create time_blocks table
-      db.run(`
-        CREATE TABLE IF NOT EXISTS time_blocks (
-          block_id INTEGER PRIMARY KEY AUTOINCREMENT,
-          start_time TEXT NOT NULL,
-          end_time TEXT NOT NULL,
-          playlist_id INTEGER NOT NULL,
-          background_image TEXT NOT NULL,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
+// Helper function for queries
+async function query(text, params) {
+  try {
+    const res = await pool.query(text, params);
+    return res;
+  } catch (err) {
+    console.error('Database query error:', err);
+    throw err;
+  }
+}
 
-      // Create playlists table
-      db.run(`
-        CREATE TABLE IF NOT EXISTS playlists (
-          playlist_id INTEGER PRIMARY KEY AUTOINCREMENT,
-          name TEXT NOT NULL,
-          description TEXT,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
+// Graceful shutdown (close pool on server stop)
+process.on('SIGINT', async () => {
+  await pool.end();
+  console.log('Postgres pool has ended');
+  process.exit(0);
+});
 
-      // Create songs table
-      db.run(`
-        CREATE TABLE IF NOT EXISTS songs (
-          song_id INTEGER PRIMARY KEY AUTOINCREMENT,
-          title TEXT NOT NULL,
-          url TEXT NOT NULL,
-          artist TEXT NOT NULL,
-          playlist_id INTEGER NOT NULL,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (playlist_id) REFERENCES playlists (playlist_id)
-        )
-      `, (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          console.log('✅ Database tables initialized');
-          resolve();
-        }
-      });
-    });
-  });
-};
+process.on('SIGTERM', async () => {
+  await pool.end();
+  console.log('Postgres pool has ended');
+  process.exit(0);
+});
 
-module.exports = { db, initDatabase };
+module.exports = {
+  query,
+  pool,
+}; 
