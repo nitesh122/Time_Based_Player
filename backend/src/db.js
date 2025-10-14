@@ -1,39 +1,23 @@
 require('dotenv').config();
-const { Pool } = require('pg');
+const { createClient } = require('@supabase/supabase-js');
 
-// Create a connection pool
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false, // required by Supabase
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!SUPABASE_URL) {
+  console.warn('Missing SUPABASE_URL env var');
+}
+if (!SUPABASE_SERVICE_ROLE_KEY) {
+  console.warn('Missing SUPABASE_SERVICE_ROLE_KEY env var');
+}
+
+// Server-side client using service role for full RLS-bypass where appropriate.
+// Ensure you never expose this key to the browser.
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
   },
 });
 
-// Helper function for queries
-async function query(text, params) {
-  try {
-    const res = await pool.query(text, params);
-    return res;
-  } catch (err) {
-    console.error('Database query error:', err);
-    throw err;
-  }
-}
-
-// Graceful shutdown (close pool on server stop)
-process.on('SIGINT', async () => {
-  await pool.end();
-  console.log('Postgres pool has ended');
-  process.exit(0);
-});
-
-process.on('SIGTERM', async () => {
-  await pool.end();
-  console.log('Postgres pool has ended');
-  process.exit(0);
-});
-
-module.exports = {
-  query,
-  pool,
-}; 
+module.exports = { supabase };

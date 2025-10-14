@@ -17,8 +17,7 @@ It handles:
 
 ## 🛠 Tech Stack
 - **Node.js + Express** – REST API framework.
-- **SQLite (MVP)** – lightweight DB, file-based.
-- **Supabase/Postgres (Scalable)** – alternative cloud-hosted option.
+- **Supabase/PostgreSQL** – primary database and storage provider.
 - **CORS + Axios** – for frontend-backend communication.
 
 ---
@@ -50,14 +49,15 @@ backend/
 
 ### 1. Get Current Time Block
 **Endpoint**
-GET /api/time-block
+GET /api/time-blocks/current
 Response
 {
   "block_id": 3,
   "start_time": "08:00",
   "end_time": "11:59",
   "playlist_id": 101,
-  "background_image": "/images/morning.jpg"
+  "background_path": "morning.jpg",
+  "background_url": "https://<project>.supabase.co/storage/v1/object/public/backgrounds/morning.jpg"
 }
 GET /api/playlists/:id
 Response 
@@ -65,8 +65,8 @@ Response
   "playlist_id": 101,
   "name": "Morning Energy",
   "songs": [
-    { "song_id": 1, "title": "Song A", "url": "/songs/songA.mp3", "artist": "Artist A" },
-    { "song_id": 2, "title": "Song B", "url": "/songs/songB.mp3", "artist": "Artist B" }
+    { "song_id": 1, "title": "Song A", "url": "https://<project>.supabase.co/storage/v1/object/public/songs/songA.mp3", "artist": "Artist A" },
+    { "song_id": 2, "title": "Song B", "url": "https://<project>.supabase.co/storage/v1/object/public/songs/songB.mp3", "artist": "Artist B" }
   ]
 }
 GET /api/songs/:id
@@ -74,14 +74,14 @@ Response
 {
   "song_id": 1,
   "title": "Song A",
-  "url": "/songs/songA.mp3",
+  "url": "https://<project>.supabase.co/storage/v1/object/public/songs/songA.mp3",
   "artist": "Artist A",
   "playlist_id": 101
 }
 GET /api/time-blocks
 Response
 [
-  { "block_id": 1, "start_time": "00:00", "end_time": "03:59", "playlist_id": 101, "background_image": "night.jpg" },
-  { "block_id": 2, "start_time": "04:00", "end_time": "07:59", "playlist_id": 102, "background_image": "sunrise.jpg" }
+  { "block_id": 1, "start_time": "00:00", "end_time": "03:59", "playlist_id": 101, "background_path": "night.jpg", "background_url": "https://.../backgrounds/night.jpg" },
+  { "block_id": 2, "start_time": "04:00", "end_time": "07:59", "playlist_id": 102, "background_path": "sunrise.jpg", "background_url": "https://.../backgrounds/sunrise.jpg" }
 ]
 

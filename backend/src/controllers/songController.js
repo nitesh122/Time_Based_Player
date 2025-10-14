@@ -1,11 +1,15 @@
-const db = require('../db');
+const { supabase } = require('../db');
 const { publicSongUrl } = require('../storage');
 
 // Get all songs
 async function getSongs(req, res) {
   try {
-    const { rows } = await db.query('SELECT * FROM songs ORDER BY song_id');
-    const songs = rows.map((s) => ({
+    const { data, error } = await supabase
+      .from('songs')
+      .select('*')
+      .order('song_id');
+    if (error) throw error;
+    const songs = (data || []).map((s) => ({
       ...s,
       url: publicSongUrl(s.file_path),
     }));
@@ -20,8 +24,13 @@ async function getSongs(req, res) {
 async function getSongsByPlaylist(req, res) {
   try {
     const playlistId = req.params.id;
-    const { rows } = await db.query('SELECT * FROM songs WHERE playlist_id = $1', [playlistId]);
-    const songs = rows.map((s) => ({
+    const { data, error } = await supabase
+      .from('songs')
+      .select('*')
+      .eq('playlist_id', playlistId)
+      .order('song_id');
+    if (error) throw error;
+    const songs = (data || []).map((s) => ({
       ...s,
       url: publicSongUrl(s.file_path),
     }));

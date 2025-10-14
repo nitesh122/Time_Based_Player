@@ -55,17 +55,9 @@ The clock now looks like a proper analog clock with:
 
 ### **Step 3: File Organization**
 
-Your files will be stored in:
-```
-Time_Based_Player/
-├── media/
-│   ├── backgrounds/
-│   │   ├── background-1234567890-123456789.jpg
-│   │   └── background-1234567891-123456790.png
-│   └── music/
-│       ├── music-1234567890-123456789.mp3
-│       └── music-1234567891-123456790.wav
-```
+Your files are stored in **Supabase Storage** buckets:
+- Bucket `backgrounds` for background images
+- Bucket `songs` for music files
 
 ### **Step 4: Database Integration**
 
@@ -76,8 +68,8 @@ The files are automatically linked to the database:
 ### **Step 5: Access Your Files**
 
 Your uploaded files are accessible at:
-- **Backgrounds**: `http://localhost:3001/media/backgrounds/filename.jpg`
-- **Music**: `http://localhost:3001/media/music/filename.mp3`
+- **Backgrounds**: `${SUPABASE_URL}/storage/v1/object/public/backgrounds/<filename>`
+- **Music**: `${SUPABASE_URL}/storage/v1/object/public/songs/<filename>`
 
 ## 🎨 Time Block Customization
 
@@ -90,15 +82,13 @@ Your uploaded files are accessible at:
 6. **20:00-23:59**: Night Vibes
 
 ### **To Change Time Blocks:**
-1. Edit `backend/src/init-db.js`
-2. Modify the `sampleData.timeBlocks` array
-3. Run `npm run init-db` to update database
+Update records in the `time_blocks` table (via Supabase Table Editor or SQL). You can also add a small admin UI for editing.
 
 ## 🎵 Playlist Management
 
 ### **To Add New Playlists:**
 1. Use the Admin Panel to upload music
-2. Or edit the database directly:
+2. Or edit the database directly (via Supabase SQL):
    ```sql
    INSERT INTO playlists (name, description) 
    VALUES ('Your Playlist', 'Your Description');
@@ -106,7 +96,7 @@ Your uploaded files are accessible at:
 
 ### **To Modify Existing Playlists:**
 1. Use the Admin Panel
-2. Or edit the database:
+2. Or edit the database (via Supabase SQL):
    ```sql
    UPDATE playlists 
    SET name = 'New Name', description = 'New Description' 
@@ -132,10 +122,9 @@ Edit `frontend/src/components/Background.css`:
 ```
 
 ### **Add More Time Blocks:**
-1. Add to `sampleData.timeBlocks` in `init-db.js`
-2. Add corresponding playlist
-3. Add songs for the playlist
-4. Run `npm run init-db`
+1. Insert new rows in `time_blocks`
+2. Add corresponding playlist in `playlists`
+3. Add songs for the playlist in `songs`
 
 ## 🚀 Production Deployment
 
@@ -146,6 +135,12 @@ Edit `frontend/src/components/Background.css`:
    ```
 
 2. Your production files will be in the `production/` directory
+
+Ensure the following environment variables are set for the backend:
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `DB_PROVIDER=postgres`
 
 3. Deploy the `production/` folder to your server
 

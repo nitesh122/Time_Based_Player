@@ -15,7 +15,7 @@ A web-based music player that automatically changes playlists based on the curre
 
 ### Backend
 - **Node.js** + **Express** - REST API server
-- **SQLite** - Lightweight database
+- **Supabase (PostgreSQL)** - Database + Storage
 - **CORS** - Cross-origin resource sharing
 
 ### Frontend
@@ -35,7 +35,7 @@ Time_Based_Player/
 │   │   ├── models/         # Data models
 │   │   └── db.js          # Database connection
 │   ├── package.json
-│   └── init-db.js         # Database initialization
+│   └── scripts/seed.js    # Database seed script (Supabase)
 ├── frontend/               # React.js frontend
 │   ├── src/
 │   │   ├── components/     # React components
@@ -43,7 +43,6 @@ Time_Based_Player/
 │   │   ├── utils/          # Utility functions
 │   │   └── App.js
 │   └── package.json
-├── database/               # SQLite database files
 └── docs/                   # Documentation
 
 ## API Endpoints
@@ -80,7 +79,10 @@ Time_Based_Player/
 
 ### Backend (.env)
 ```
-DATABASE_URL=sqlite:///./database/music_player.db
+SUPABASE_URL=your-supabase-project-url
+SUPABASE_ANON_KEY=your-supabase-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+DB_PROVIDER=postgres
 PORT=3001
 NODE_ENV=development
 CORS_ORIGIN=http://localhost:3000

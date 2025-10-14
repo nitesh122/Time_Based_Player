@@ -6,19 +6,29 @@ const path = require('path');
 const db = require('./db');
 
 // Import routes (make sure filenames are plural)
-const timeBlockRoutes = require('./routes/timeBlocks');
-const playlistRoutes = require('./routes/playlists');
-const songRoutes = require('./routes/songs');
+// Fix import/file-name mismatch: actual files are singular (timeBlock.js, playlist.js, song.js)
+const timeBlockRoutes = require('./routes/timeBlock');
+const playlistRoutes = require('./routes/playlist');
+const songRoutes = require('./routes/song');
 const uploadRoutes = require('./routes/upload'); // optional, keep only if you need uploads
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+const allowedOrigins = (process.env.CORS_ORIGIN || '').split(',').map(o => o.trim()).filter(Boolean);
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow non-browser or same-origin requests (no Origin header)
+    if (!origin) return callback(null, true);
+    // If no allowed origins configured, be permissive in dev
+    if (allowedOrigins.length === 0) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
-}));
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
@@ -31,7 +41,9 @@ app.use((req, res, next) => {
 // Health check endpoint (also verifies DB connection)
 app.get('/api/health', async (req, res) => {
   try {
-    await db.query('SELECT 1');
+    // Supabase client: simple call to verify connectivity
+    const { error } = await db.supabase.from('time_blocks').select('block_id').limit(1);
+    if (error) throw error;
     res.json({
       status: 'OK',
       timestamp: new Date().toISOString(),

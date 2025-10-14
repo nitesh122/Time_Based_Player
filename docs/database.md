@@ -1,7 +1,7 @@
 # Database Documentation – Time-Based Music Player
 
 The database stores playlists, songs, and time block metadata.  
-**Recommended options:** SQLite (simple, local file-based) or Supabase/Postgres (scalable, cloud-hosted).
+This project uses **Supabase/PostgreSQL** as the single source of truth (database + storage).
 
 ---
 
@@ -21,7 +21,7 @@ The database stores playlists, songs, and time block metadata.
 | start_time      | TIME      | Block start (HH:MM) |
 | end_time        | TIME      | Block end (HH:MM) |
 | playlist_id     | INT (FK)  | Linked playlist |
-| background_img  | TEXT      | URL/path to background image |
+| background_path | TEXT      | Path/key in Supabase Storage bucket `backgrounds` |
 
 ### Table: `playlists`
 | Column       | Type      | Description |
@@ -35,7 +35,7 @@ The database stores playlists, songs, and time block metadata.
 |--------------|-----------|-------------|
 | song_id      | INT (PK)  | Unique ID for song |
 | title        | TEXT      | Song title |
-| url          | TEXT      | File path or streaming URL |
+| file_path    | TEXT      | Path/key in Supabase Storage bucket `songs` |
 | artist       | TEXT      | Song artist |
 | playlist_id  | INT (FK)  | Linked playlist |
 
@@ -43,7 +43,7 @@ The database stores playlists, songs, and time block metadata.
 
 ## Example Data
 ### `time_blocks`
-| block_id | start_time | end_time | playlist_id | background_img |
+| block_id | start_time | end_time | playlist_id | background_path |
 |----------|------------|----------|-------------|----------------|
 | 1        | 00:00      | 03:59    | 101         | night.jpg      |
 | 2        | 04:00      | 07:59    | 102         | sunrise.jpg    |
@@ -55,13 +55,10 @@ The database stores playlists, songs, and time block metadata.
 | 102         | Sunrise Calm    |
 
 ### `songs`
-| song_id | title      | url            | artist    | playlist_id |
+| song_id | title      | file_path      | artist    | playlist_id |
 |---------|------------|---------------|-----------|-------------|
-| 1       | Moonlight  | /songs/1.mp3  | Artist A  | 101         |
-| 2       | Early Bird | /songs/2.mp3  | Artist B  | 102         |
+| 1       | Moonlight  | moonlight.mp3 | Artist A  | 101         |
+| 2       | Early Bird | early-bird.mp3| Artist B  | 102         |
 
 ---
-
-## Run Database (SQLite Example)
-```bash
-sqlite3 music_player.db
+All media files (backgrounds and songs) should be uploaded to Supabase Storage buckets `backgrounds` and `songs`. The backend constructs public URLs automatically using the project `SUPABASE_URL`.

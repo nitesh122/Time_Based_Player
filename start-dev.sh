@@ -23,13 +23,7 @@ start_backend() {
         print_status "Installing backend dependencies..."
         npm install
     fi
-    
-    # Initialize database if needed
-    if [ ! -f "../database/music_player.db" ]; then
-        print_status "Initializing database..."
-        npm run init-db
-    fi
-    
+
     print_status "Backend starting on port 3001..."
     npm start &
     BACKEND_PID=$!

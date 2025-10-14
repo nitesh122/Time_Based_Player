@@ -53,7 +53,7 @@ A web-based music player that changes playlists automatically based on the curre
 ## Tech Stack
 - **Frontend**: React.js  
 - **Backend**: Node.js/Express  
-- **Database**: SQLite (MVP) / Supabase (scalable)  
+- **Database**: Supabase/PostgreSQL  
 - **Audio Player**: HTML5 `<audio>` or Howler.js  
 
 ---

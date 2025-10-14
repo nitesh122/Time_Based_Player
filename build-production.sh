@@ -41,9 +41,7 @@ if [ ! -d "node_modules" ]; then
     npm install
 fi
 
-# Initialize database
-print_status "Initializing database..."
-npm run init-db
+print_status "Skipping DB initialization (handled by Supabase)"
 
 # Build frontend
 print_status "Building frontend..."
@@ -81,12 +79,12 @@ cat > production/package.json << EOF
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "init-db": "node src/init-db.js"
+    "seed": "node scripts/seed.js"
   },
   "dependencies": {
     "express": "^4.18.2",
     "cors": "^2.8.5",
-    "sqlite3": "^5.1.6",
+    "@supabase/supabase-js": "^2.45.2",
     "body-parser": "^1.20.2",
     "path": "^0.12.7"
   },
@@ -106,21 +104,16 @@ This is the production build of the Time-Based Music Player.
 ## Quick Start
 
 1. Install dependencies:
-   \`\`\`bash
+   ```bash
    npm install
-   \`\`\`
+   ```
 
-2. Initialize database:
-   \`\`\`bash
-   npm run init-db
-   \`\`\`
-
-3. Start the application:
-   \`\`\`bash
+2. Start the application:
+   ```bash
    npm start
-   \`\`\`
+   ```
 
-4. Open your browser and go to: http://localhost:3001
+3. Open your browser and go to: http://localhost:3001
 
 ## Features
 
@@ -135,6 +128,7 @@ This is the production build of the Time-Based Music Player.
 
 - PORT: Server port (default: 3001)
 - NODE_ENV: Environment (production/development)
+- SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
 
 ## API Endpoints
 
@@ -151,8 +145,6 @@ print_status "Creating start script..."
 cat > production/start.sh << 'EOF'
 #!/bin/bash
 echo "🎵 Starting Time-Based Music Player..."
-echo "📊 Initializing database..."
-npm run init-db
 echo "🚀 Starting server..."
 npm start
 EOF
