@@ -16,14 +16,28 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-const allowedOrigins = (process.env.CORS_ORIGIN || '').split(',').map(o => o.trim()).filter(Boolean);
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000').split(',').map(o => o.trim()).filter(Boolean);
 const corsOptions = {
   origin: (origin, callback) => {
     // Allow non-browser or same-origin requests (no Origin header)
     if (!origin) return callback(null, true);
-    // If no allowed origins configured, be permissive in dev
-    if (allowedOrigins.length === 0) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
+    
+    // In development, be more permissive
+    if (process.env.NODE_ENV === 'development') {
+      return callback(null, true);
+    }
+    
+    // Allow Vercel preview deployments and production domains
+    if (origin && (origin.includes('.vercel.app') || origin.includes('localhost'))) {
+      return callback(null, true);
+    }
+    
+    // Check against configured allowed origins
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    console.warn(`CORS rejected origin: ${origin}`);
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,

@@ -1,0 +1,29 @@
+{
+  "name": "time-based-music-player",
+  "version": "1.0.0",
+  "description": "A web-based music player that automatically changes playlists based on the current time of day",
+  "scripts": {
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && npm start",
+    "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm start\"",
+    "install-all": "npm install && cd frontend && npm install && cd ../backend && npm install"
+  },
+  "keywords": [
+    "music",
+    "time-based",
+    "playlist",
+    "react",
+    "node",
+    "express",
+    "supabase"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}
