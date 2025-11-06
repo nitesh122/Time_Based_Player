@@ -7,23 +7,35 @@
       "config": {
         "distDir": "build"
       }
-    },
-    {
-      "src": "api/index.js",
-      "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
+      "src": "/api/health",
+      "dest": "/api/health.js"
+    },
+    {
+      "src": "/api/time-blocks(.*)",
+      "dest": "/api/time-blocks.js"
+    },
+    {
+      "src": "/api/playlists(.*)",
+      "dest": "/api/playlists.js"
     },
     {
       "src": "/(.*)",
       "dest": "/frontend/$1"
     }
   ],
-  "env": {
-    "NODE_ENV": "production"
+  "functions": {
+    "api/health.js": {
+      "maxDuration": 10
+    },
+    "api/time-blocks.js": {
+      "maxDuration": 15
+    },
+    "api/playlists.js": {
+      "maxDuration": 15
+    }
   }
 }
