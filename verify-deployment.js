@@ -49,6 +49,16 @@ const checks = [
     fix: 'Ensure backend/src/index.js exists'
   },
   {
+    name: 'API serverless function exists',
+    check: () => fs.existsSync('api/index.js'),
+    fix: 'Create api/index.js for Vercel serverless functions'
+  },
+  {
+    name: 'API package.json exists',
+    check: () => fs.existsSync('api/package.json'),
+    fix: 'Create api/package.json with dependencies'
+  },
+  {
     name: 'Environment example exists',
     check: () => fs.existsSync('.env.example'),
     fix: 'Create .env.example with required variables'
