@@ -1,12 +1,10 @@
 // backend/src/routes/upload.js
 const express = require('express');
 const multer = require('multer');
-const { createClient } = require('@supabase/supabase-js');
+const supabase = require('../config/supabase');
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
-
-const supa = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
 // Upload a song or background file to Supabase Storage
 router.post('/:bucket', upload.single('file'), async (req, res) => {
@@ -21,7 +19,7 @@ router.post('/:bucket', upload.single('file'), async (req, res) => {
     // Example: morning/track1.mp3
     const filePath = `${Date.now()}-${file.originalname}`;
 
-    const { data, error } = await supa.storage
+    const { data, error } = await supabase.storage
       .from(bucket)
       .upload(filePath, file.buffer, { contentType: file.mimetype });
 

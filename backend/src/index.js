@@ -4,6 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const db = require('./db');
+const { corsOptions } = require('./config/cors');
 
 // Import routes (make sure filenames are plural)
 // Fix import/file-name mismatch: actual files are singular (timeBlock.js, playlist.js, song.js)
@@ -16,32 +17,6 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000').split(',').map(o => o.trim()).filter(Boolean);
-const corsOptions = {
-  origin: (origin, callback) => {
-    // Allow non-browser or same-origin requests (no Origin header)
-    if (!origin) return callback(null, true);
-    
-    // In development, be more permissive
-    if (process.env.NODE_ENV === 'development') {
-      return callback(null, true);
-    }
-    
-    // Allow Vercel preview deployments and production domains
-    if (origin && (origin.includes('.vercel.app') || origin.includes('localhost'))) {
-      return callback(null, true);
-    }
-    
-    // Check against configured allowed origins
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    
-    console.warn(`CORS rejected origin: ${origin}`);
-    return callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true,
-};
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));

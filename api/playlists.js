@@ -1,31 +1,13 @@
 // api/playlists.js - Playlists endpoint for Vercel
-require('dotenv').config();
-const { createClient } = require('@supabase/supabase-js');
-
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-let supabase;
-if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
-  supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-    },
-  });
-}
+const supabase = require('../backend/src/config/supabase');
+const { setCorsHeaders, handleOptions } = require('../backend/src/config/cors');
 
 module.exports = async (req, res) => {
   // Set CORS headers
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+  setCorsHeaders(res, 'GET,OPTIONS');
 
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
+  // Handle OPTIONS preflight
+  if (handleOptions(req, res)) return;
 
   if (req.method !== 'GET') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -33,9 +15,6 @@ module.exports = async (req, res) => {
   }
 
   try {
-    if (!supabase) {
-      throw new Error('Database not configured');
-    }
 
     // Extract playlist ID from URL if present
     const urlParts = req.url.split('/');

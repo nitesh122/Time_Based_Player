@@ -2,25 +2,9 @@
   Seed script for Supabase (PostgreSQL)
   - Inserts baseline data for time_blocks, playlists, songs
   - Requires tables to already exist. If not, run schema.sql in Supabase SQL Editor.
-
-  Env required:
-    SUPABASE_URL
-    SUPABASE_SERVICE_ROLE_KEY
 */
 require('dotenv').config();
-const { createClient } = require('@supabase/supabase-js');
-
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!SUPABASE_URL || !SERVICE_ROLE) {
-  console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in environment');
-  process.exit(1);
-}
-
-const supabase = createClient(SUPABASE_URL, SERVICE_ROLE, {
-  auth: { persistSession: false, autoRefreshToken: false },
-});
+const supabase = require('../src/config/supabase');
 
 async function tableExists(name) {
   const { data, error } = await supabase
